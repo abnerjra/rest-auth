@@ -1,4 +1,4 @@
-import { encryptedPlugin } from "../../config";
+import { encryptedPlugin, jwtConfig } from "../../config";
 import { UserModel } from "../../data";
 import {
     CustomError,
@@ -50,13 +50,17 @@ export class AuthService {
 
         // TODO: return data
         const { password, ...userEntity } = UserEntity.fromObject(user);
+
+        // TODO: Generate JWT
+        const token = await jwtConfig.generateToken({ id: user.id, email: user.email });
+        if (!token) throw CustomError.internalServer("Failed to generate token");
         
         return {
             severity: "success",
             message: "User login successfully",
             data: {
                 user: userEntity,
-                token: "", // TODO: JWT
+                token: token, // TODO: JWT
             },
         };
 
