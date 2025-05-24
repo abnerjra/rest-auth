@@ -1,6 +1,11 @@
 import { encryptedPlugin } from "../../config";
 import { UserModel } from "../../data";
-import { CustomError, RegisterUserDto, UserEntity } from "../../domain";
+import {
+    CustomError,
+    LoginUserDto,
+    RegisterUserDto,
+    UserEntity
+} from "../../domain";
 
 export class AuthService {
     // DI
@@ -12,7 +17,7 @@ export class AuthService {
 
         try {
             const user = new UserModel(registerDto);
-            
+
             // TODO: encrypt password
             user.password = encryptedPlugin.hash(registerDto.password);
 
@@ -25,12 +30,35 @@ export class AuthService {
 
             const { password, ...userEntity } = UserEntity.fromObject(user);
             return {
-                user: {...userEntity},
+                user: { ...userEntity },
                 token: "", // TODO: JWT
             };
-            
+
         } catch (error) {
             throw CustomError.internalServer(`${error}`);
         }
+    }
+
+    public async loginUser(loginUserDto: LoginUserDto) {
+        // TODO: Validate user
+        const user = await UserModel.findOne({ email: loginUserDto.email });
+        if (!user) throw CustomError.badRequest(`User with email ${loginUserDto.email} not found`);
+
+        // TODO: Compare password
+        const isValidPassword = encryptedPlugin.compare({ hash: user.password, password: loginUserDto.password });
+        if (!isValidPassword) throw CustomError.badRequest("Invalid password");
+
+        // TODO: return data
+        const { password, ...userEntity } = UserEntity.fromObject(user);
+        
+        return {
+            severity: "success",
+            message: "User login successfully",
+            data: {
+                user: userEntity,
+                token: "", // TODO: JWT
+            },
+        };
+
     }
 }
