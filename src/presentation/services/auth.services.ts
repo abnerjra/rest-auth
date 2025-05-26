@@ -90,7 +90,7 @@ export class AuthService {
         const options = {
             to: email,
             subject: "Email Verification",
-            htmlBody: htmlBody            
+            htmlBody: htmlBody
         }
 
         const isEmailSent = await this.emailService.sendEmail(options);
@@ -98,7 +98,34 @@ export class AuthService {
         return true;
     }
 
-    public async validateEmail(token: string) {
-        
+    /**
+     * Validates a user's email address using a JWT token.
+     * 
+     * This method decodes the provided token, extracts the user's email,
+     * retrieves the user from the database, and marks the email as validated.
+     * 
+     * @param {string} token - JWT token containing the user's email.
+     * @returns {Promise<boolean>} - Returns `true` if the email was successfully validated.
+     * 
+     * @throws {CustomError} - Throws an error if:
+     * - The token is invalid.
+     * - The email is missing in the token payload.
+     * - No user is found with the provided email.
+     * - The email has already been validated.
+     */
+    public validateEmail = async (token: string) => {
+        const payload = await jwtConfig.validateToken(token);
+        if (!payload) throw CustomError.badRequest("Invalid token");
+
+        const { email } = payload as { email: string };
+        if (!email) throw CustomError.internalServer("Email not in token");
+
+        const user = await UserModel.findOne({ email });
+        if (!user) throw CustomError.internalServer(`User with email ${email} not found`);
+        if (user.emailValidated) throw CustomError.badRequest("Email already validated");
+
+        user.emailValidated = true;
+        await user.save();
+        return true
     }
 }
