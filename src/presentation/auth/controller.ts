@@ -60,10 +60,15 @@ export class AuthController {
     }
 
     validateEmail = (req: Request, res: Response) => {
-
-        res.status(200).json({
-            severity: "success",
-            message: "User validate email successfully",
-        });
+        const { token } = req.params;
+        this.authService.validateEmail(token)
+            .then(() => {
+                res.status(200).json({
+                    severity: "success",
+                    message: "User validate email successfully",
+                    data: null
+                });
+            })
+            .catch((err) => this.handleError(err, res));
     }
 }
