@@ -1,13 +1,21 @@
 import { Router } from 'express';
 import { AuthController } from './controller';
-import { AuthService } from '../services/auth.services';
-
+import { AuthService, EmailService } from '../services';
+import { envPlugin } from '../../config';
 export class Authroutes {
 
     static get routes(): Router {
 
         const router = Router();
-        const authService = new AuthService();
+
+        // TODO: inyect dependencies EmailService
+        const emailService = new EmailService(
+            envPlugin.MAILER_SERVICE,
+            envPlugin.MAILER_EMAIL,
+            envPlugin.MAILER_SECRET_KEY
+        )
+
+        const authService = new AuthService(emailService);
 
         const controller = new AuthController(authService);
 
