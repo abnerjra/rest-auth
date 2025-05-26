@@ -10,4 +10,5 @@ export const envPlugin = {
     MAILER_EMAIL: env.get('MAILER_EMAIL').required().asString(),
     MAILER_SECRET_KEY: env.get('MAILER_SECRET_KEY').required().asString(),
     WEBSERVICE_URL: env.get('WEBSERVICE_URL').required().asString(),
+    SEND_MAIL: env.get('SEND_MAIL').default('false').asBool(),
 }
