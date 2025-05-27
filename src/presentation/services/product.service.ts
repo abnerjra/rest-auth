@@ -41,7 +41,9 @@ export class ProductService {
             ProductModel.countDocuments(),
             ProductModel.find()
                 .skip((paginationDto.page - 1) * paginationDto.limit)
-                .limit(paginationDto.limit),
+                .limit(paginationDto.limit)
+                .populate('user', 'id name')
+                .populate('category', 'id name')
         ]);
 
         return {
