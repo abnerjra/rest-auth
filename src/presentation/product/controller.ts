@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
-import { CustomError, PaginationDto } from "../../domain";
+import { CreateProductDto, CustomError, PaginationDto } from "../../domain";
+import { ProductService } from '../services/product.service'
 
 export class ProductController {
     // DI
     constructor(
-        // TODO: private readonly productService: ProductService
+        private readonly productService: ProductService
     ) { }
 
     private handleError = (error: unknown, res: Response) => {
@@ -27,11 +28,16 @@ export class ProductController {
             return;
         }
 
-        res.status(200).json({
-            severity: 'success',
-            message: 'Get all products'
-        })
-        return
+        this.productService.getProducts(paginationDto!)
+            .then((product) => {
+                res.status(200).json({
+                    severity: 'success',
+                    message: 'Get all products',
+                    data: product
+                })
+                return
+            })
+            .catch((err) => this.handleError(err, res));
     }
 
     getById = (req: Request, res: Response) => {
@@ -43,11 +49,26 @@ export class ProductController {
     }
 
     create = (req: Request, res: Response) => {
-        res.status(201).json({
-            severity: 'success',
-            message: 'Created product'
-        })
-        return
+        const auth = (req as any).auth
+        const [error, createProductDto] = CreateProductDto.create({...req.body, user: auth.id})
+        if (error) {
+            res.status(400).json({
+                severity: "error",
+                message: error,
+            });
+            return;
+        }
+
+        this.productService.createProduct(createProductDto!)
+            .then((product) => {
+                res.status(201).json({
+                    severity: 'success',
+                    message: 'Created product',
+                    data: product
+                })
+                return
+            })
+            .catch((err) => this.handleError(err, res))
     }
 
     update = (req: Request, res: Response) => {
