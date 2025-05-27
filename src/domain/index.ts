@@ -6,6 +6,7 @@ export * from './dtos/shared/pagination.dto'
 
 // Category
 export * from './dtos/category/create-category.dto'
+export * from './dtos/category/update-category.dto'
 
 // TODO : ENTITIES
 export * from './entities/user.entity'
