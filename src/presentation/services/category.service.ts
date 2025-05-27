@@ -4,6 +4,7 @@ import {
     CreateCategoryDto,
     CustomError,
     PaginationDto,
+    UpdateCategoryDto,
     UserEntity
 } from "../../domain";
 
@@ -88,5 +89,65 @@ export class CategoryService {
         } catch (error) {
             throw CustomError.internalServer(`${error}`);
         }
+    }
+
+    /**
+     * Retrieves a single category by its ID.
+     *
+     * @param {string} id - The ID of the category to retrieve.
+     * @returns {Promise<CategoryEntity>} - The category entity corresponding to the given ID.
+     * @throws {CustomError} - If no category is found with the provided ID.
+     */
+    async getCategory(id: string): Promise<CategoryEntity> {
+        const category = await CategoryModel.findById(id);
+        if (!category) throw CustomError.notFound("Category not found");
+        return CategoryEntity.fromObject(category);
+    }
+
+    /**
+     * Updates an existing category by ID with new data.
+     *
+     * Ensures that the new category name is unique (excluding the current category being updated).
+     *
+     * @param {UpdateCategoryDto} updateCategoryDto - The updated category data including ID.
+     * @returns {Promise<CategoryEntity>} - The updated category entity.
+     * @throws {CustomError} - If the category name already exists, or the category is not found, or a database error occurs.
+     */
+    async updateCategory(updateCategoryDto: UpdateCategoryDto): Promise<CategoryEntity> {
+        const categoryExists = await CategoryModel.findOne({
+            name: updateCategoryDto.name,
+            _id: { $ne: updateCategoryDto.id } // Ensure we don't match the current category being updated
+        });
+        // console.log(categoryExists);
+        if (categoryExists) throw CustomError.badRequest("Category already exists");
+
+        try {
+            const category = await CategoryModel.findByIdAndUpdate(
+                updateCategoryDto.id,
+                {
+                    name: updateCategoryDto.name,
+                    available: updateCategoryDto.available,
+                    description: updateCategoryDto.description,
+                },
+                { new: true }
+            );
+            if (!category) throw CustomError.notFound("Category not found");
+            return CategoryEntity.fromObject(category);
+        } catch (error) {
+            throw CustomError.internalServer(`${error}`);
+        }
+    }
+
+    /**
+     * Deletes a category by its ID.
+     *
+     * @param {string} id - The ID of the category to delete.
+     * @returns {Promise<string>} - The ID of the deleted category.
+     * @throws {CustomError} - If the category is not found.
+     */
+    async deleteCategory(id: string): Promise<string> {
+        const deletedCategory = await CategoryModel.findByIdAndDelete(id);
+        if (!deletedCategory) throw CustomError.notFound(`Category with ID ${id} not found`);
+        return deletedCategory.id;
     }
 }
