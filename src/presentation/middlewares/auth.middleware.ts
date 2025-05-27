@@ -36,7 +36,8 @@ export class AuthMiddleware {
             }
 
             const { password, ...userAuth } = UserEntity.fromObject(user);
-            req.body.auth = userAuth; // Attach user to the request body
+            // req.body.auth = userAuth; // Attach user to the request body
+            (req as any).auth = userAuth;
 
             next();
         } catch (error) {
