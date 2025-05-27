@@ -20,7 +20,7 @@ export class AuthMiddleware {
         try {
             const payload = await jwtConfig.validateToken<{ id: string }>(token);
             if (!payload) {
-                res.status(401).json({ severity: 'error', message: 'Invalid token' });
+                res.status(401).json({ severity: 'error', message: 'Expired token' });
                 return;
             }
 
