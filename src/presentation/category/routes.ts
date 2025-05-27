@@ -13,11 +13,11 @@ export class CategoryRoutes {
         const middlewares = [AuthMiddleware.validateToken];
 
         // Define your routes here
-        router.get('/', controller.getCategories);
-        router.get('/:id', controller.getCategory);
+        router.get('/', middlewares, controller.getCategories);
+        router.get('/:id', middlewares, controller.getCategory);
         router.post('/', middlewares, controller.createCategory);
-        router.put('/', controller.updateCategory);
-        router.delete('/', controller.deleteCategory);
+        router.put('/:id', middlewares, controller.updateCategory);
+        router.delete('/:id', middlewares, controller.deleteCategory);
 
         return router;
     }
