@@ -1,3 +1,5 @@
+import { Validators } from "../../../config";
+
 export class CreateProductDto {
 
     private constructor(
@@ -28,7 +30,9 @@ export class CreateProductDto {
         if (!description) return ['Miising description']
         if (!price) return ['Miising price']
         if (!user) return ['Miising user']
+        if (!Validators.isMongoID(user)) return ['Invalid User ID']
         if (!category) return ['Miising category']
+        if (!Validators.isMongoID(category)) return ['Invalid Category ID']
 
         return [
             undefined,
