@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import {
     CreateCategoryDto,
     CustomError,
-    PaginationDto
+    PaginationDto,
+    UpdateCategoryDto
 } from "../../domain";
 import { CategoryService } from "../services/category.service";
 
@@ -23,6 +24,8 @@ export class CategoryController {
     }
 
     createCategory = (req: Request, res: Response) => {
+        const auth = (req as any).auth;
+
         const [error, createCategoryDto] = CreateCategoryDto.create(req.body);
         if (error) {
             res.status(400).json({
@@ -32,7 +35,7 @@ export class CategoryController {
             return;
         }
 
-        this.categoryService.createCategory(createCategoryDto!, req.body.auth)
+        this.categoryService.createCategory(createCategoryDto!, auth)
             .then((category) => {
                 const { id, name, available, description } = category;
                 res.status(201).json({
@@ -82,14 +85,67 @@ export class CategoryController {
     }
 
     getCategory = async (req: Request, res: Response) => {
-        // TODO: Logic to be implemented soon
+        const categoryId = req.params.id;
+        const auth = (req as any).auth;
+        if (!categoryId) {
+            res.status(400).json({
+                severity: "error",
+                message: "Category ID is required",
+            });
+            return;
+        }
+
+        this.categoryService.getCategory(categoryId)
+            .then((category) => {
+                const { user, img, ...rest } = category;
+                res.status(200).json({
+                    severity: "success",
+                    message: "Category retrieved successfully",
+                    data: rest
+                });
+            })
+            .catch((err) => this.handleError(err, res));
+
     }
 
     updateCategory = async (req: Request, res: Response) => {
-        // TODO: Logic to be implemented soon
+        const id = req.params.id;
+        const [error, updateCategoryDto] = UpdateCategoryDto.create({ ...req.body, id });
+        if (error) {
+            res.status(400).json({
+                severity: "error",
+                message: error,
+            });
+            return;
+        }
+
+        this.categoryService.updateCategory(updateCategoryDto!)
+            .then((category) => {
+                const { id, name, available, description } = category;
+                res.status(200).json({
+                    severity: "success",
+                    message: "Category updated successfully",
+                    data: {
+                        id,
+                        name,
+                        available,
+                        description,
+                    },
+                });
+            })
+            .catch((err) => this.handleError(err, res));
     }
 
-    deleteCategory = async (req: Request, res: Response) => {
-        // TODO: Logic to be implemented soon
+    deleteCategory = (req: Request, res: Response) => {
+        const id = req.params.id;
+        this.categoryService.deleteCategory(id)
+            .then(() => {
+                res.status(200).json({
+                    severity: "success",
+                    message: "Category deleted successfully",
+                    data: id,
+                });
+            })
+            .catch((err) => this.handleError(err, res));
     }
 }
