@@ -21,15 +21,7 @@ export class FileUploadController {
 
     uploadFile = (req: Request, res: Response) => {
         const type = req.params.type;
-        const validTypes = ['user', 'product', 'category']
-        if (!validTypes.includes(type)) {
-            res.status(400).json({
-                severity: 'error',
-                message: `Invalid type ${type}, valied ones ${validTypes}`
-            });
-            return;
-        }
-
+        
         // const file = req.body.files.at(0) as UploadedFile;
         const file = req.body.files.at(0);
         const pathDestiny = `uploads/${type}`
@@ -46,11 +38,22 @@ export class FileUploadController {
             .catch((error) => this.handleError(error, res))
     }
 
-    uploadMultiPleFiles = (req: Request, res: Response) => {
-        res.status(200).json({
-            severity: "success",
-            message: 'File multiple upload',
-        });
-        return;
+    uploadMultipleFiles = (req: Request, res: Response) => {
+        const type = req.params.type;
+        
+        // const files = req.body.files as UploadedFile;
+        const files = req.body.files;
+        const pathDestiny = `uploads/${type}`
+
+        this.fileUploadService.uploadMultiple(files, pathDestiny)
+            .then((upload) => {
+                res.status(200).json({
+                    severity: "success",
+                    message: 'File single upload',
+                    data: upload
+                });
+                return;
+            })
+            .catch((error) => this.handleError(error, res))
     }
 }
