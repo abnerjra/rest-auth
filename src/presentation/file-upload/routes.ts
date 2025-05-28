@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { FileUploadController } from "./controller";
-import { AuthMiddleware } from "../middlewares";
+import { AuthMiddleware, FileUploadMiddleware } from "../middlewares";
 import { FileUploadService } from "../services/file-upload.service";
 
 export class UploadRoutes {
@@ -11,12 +11,15 @@ export class UploadRoutes {
         const controller = new FileUploadController(service);
 
         const middlewares = [
-            AuthMiddleware.validateToken
+            AuthMiddleware.validateToken,
+            FileUploadMiddleware.execute
         ];
 
+        router.use(middlewares)
+
         // Define your routes here
-        router.post('/single/:type', middlewares, controller.uploadFile);
-        router.post('/multiple/:type', middlewares, controller.uploadMultiPleFiles);
+        router.post('/single/:type', controller.uploadFile);
+        router.post('/multiple/:type', controller.uploadMultiPleFiles);
 
         return router;
     }
