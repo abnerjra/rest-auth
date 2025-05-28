@@ -1,12 +1,14 @@
 import { Router } from "express";
 import { FileUploadController } from "./controller";
 import { AuthMiddleware } from "../middlewares";
+import { FileUploadService } from "../services/file-upload.service";
 
 export class UploadRoutes {
     static get routes(): Router {
         const router = Router();
 
-        const controller = new FileUploadController();
+        const service = new FileUploadService()
+        const controller = new FileUploadController(service);
 
         const middlewares = [
             AuthMiddleware.validateToken
