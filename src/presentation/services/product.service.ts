@@ -2,7 +2,9 @@ import { ProductModel } from "../../data";
 import {
     CreateProductDto,
     CustomError,
-    PaginationDto
+    PaginationDto,
+    ReadIDDto,
+    UpdateProductDto
 } from "../../domain";
 
 interface PaginationResponse {
@@ -83,5 +85,47 @@ export class ProductService {
         } catch (error) {
             throw CustomError.internalServer(`${error}`);
         }
+    }
+
+    async getProduct(readProductDto: ReadIDDto) {
+        const product = await ProductModel.findById(readProductDto.id)
+            .populate([
+                { path: 'user', select: 'name' },
+                { path: 'category', select: 'name' }
+            ])
+        if (!product) throw CustomError.notFound("Product not found");
+        return product;
+    }
+
+    async updateProduct(updateProductDto: UpdateProductDto) {
+        const productExists = await ProductModel.findOne({
+            name: updateProductDto.name,
+            _id: { $ne: updateProductDto.id }
+        })
+        if (productExists) throw CustomError.badRequest("Product already exists");
+
+        try {
+            const product = await ProductModel.findByIdAndUpdate(
+                updateProductDto.id,
+                {
+                    name: updateProductDto.name,
+                    available: updateProductDto.available,
+                    description: updateProductDto.description,
+                    price: updateProductDto.price,
+                    category: updateProductDto.category
+                },
+                { new: true }
+            );
+            if (!product) throw CustomError.notFound("Category not found");
+            return product;
+        } catch (error) {
+            throw CustomError.internalServer(`${error}`);
+        }
+    }
+
+    async deleteProduct(readProductDto: ReadIDDto) {
+        const deletedProduct = await ProductModel.findByIdAndDelete(readProductDto.id);
+        if (!deletedProduct) throw CustomError.notFound(`Product with ID ${readProductDto.id} not found`);
+        return deletedProduct.id;
     }
 }
