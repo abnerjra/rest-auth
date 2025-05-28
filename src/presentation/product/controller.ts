@@ -1,5 +1,11 @@
 import { Request, Response } from "express";
-import { CreateProductDto, CustomError, PaginationDto } from "../../domain";
+import {
+    CreateProductDto,
+    CustomError,
+    PaginationDto,
+    ReadIDDto,
+    UpdateProductDto
+} from "../../domain";
 import { ProductService } from '../services/product.service'
 
 export class ProductController {
@@ -41,16 +47,30 @@ export class ProductController {
     }
 
     getById = (req: Request, res: Response) => {
-        res.status(200).json({
-            severity: 'success',
-            message: 'Get By Id product'
-        })
-        return
+        const productId = req.params.id;
+        const [error, readProductDto] = ReadIDDto.create(productId);
+        if (error) {
+            res.status(400).json({
+                severity: "error",
+                message: error,
+            });
+            return;
+        }
+
+        this.productService.getProduct(readProductDto!)
+            .then((product) => {
+                res.status(200).json({
+                    severity: "success",
+                    message: "Product retrieved successfully",
+                    data: product
+                });
+            })
+            .catch((err) => this.handleError(err, res))
     }
 
     create = (req: Request, res: Response) => {
         const auth = (req as any).auth
-        const [error, createProductDto] = CreateProductDto.create({...req.body, user: auth.id})
+        const [error, createProductDto] = CreateProductDto.create({ ...req.body, user: auth.id })
         if (error) {
             res.status(400).json({
                 severity: "error",
@@ -72,18 +92,46 @@ export class ProductController {
     }
 
     update = (req: Request, res: Response) => {
-        res.status(200).json({
-            severity: 'success',
-            message: 'Updated product'
-        })
-        return
+        const id = req.params.id;
+        const auth = (req as any).auth
+        const [error, updateProductDto] = UpdateProductDto.create({ ...req.body, user: auth.id, id })
+        if (error) {
+            res.status(400).json({
+                severity: "error",
+                message: error,
+            });
+            return;
+        }
+        this.productService.updateProduct(updateProductDto!)
+            .then((product) => {
+                res.status(200).json({
+                    severity: "success",
+                    message: "Product updated successfully",
+                    data: product,
+                });
+            })
+            .catch((err) => this.handleError(err, res));
     }
 
     delete = (req: Request, res: Response) => {
-        res.status(200).json({
-            severity: 'success',
-            message: 'Deleted product'
-        })
-        return
+        const productId = req.params.id;
+        const [error, readProductDto] = ReadIDDto.create(productId);
+        if (error) {
+            res.status(400).json({
+                severity: "error",
+                message: error,
+            });
+            return;
+        }
+
+        this.productService.deleteProduct(readProductDto!)
+            .then((product) => {
+                res.status(200).json({
+                    severity: "success",
+                    message: "Product deleted successfully",
+                    data: product
+                });
+            })
+            .catch((err) => this.handleError(err, res))
     }
 }
