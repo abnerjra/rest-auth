@@ -1,10 +1,12 @@
 import { Request, Response } from "express";
 import { CustomError } from "../../domain";
+import { FileUploadService } from "../services/file-upload.service";
+import { UploadedFile } from 'express-fileupload';
 
 export class FileUploadController {
     // DI
     constructor(
-        // private readonly categoryService: CategoryService,
+        private readonly fileUploadService: FileUploadService,
     ) { }
 
 
@@ -18,11 +20,38 @@ export class FileUploadController {
     }
 
     uploadFile = (req: Request, res: Response) => {
-        res.status(200).json({
-            severity: "success",
-            message: 'File single upload',
-        });
-        return;
+        const type = req.params.type;
+        const validTypes = ['user', 'product', 'category']
+        if (!validTypes.includes(type)) {
+            res.status(400).json({
+                severity: 'error',
+                message: `Invalid type ${type}, valied ones ${validTypes}`
+            });
+            return;
+        }
+
+        if (!req.files || Object.keys(req.files).length === 0) {
+            res.status(400).json({
+                severity: "error",
+                message: 'No files were selected',
+            });
+            return;
+        }
+
+
+        const file = req.files.file as UploadedFile;
+        const pathDestiny = `uploads/${type}`
+
+        this.fileUploadService.uploadSingle(file, pathDestiny)
+            .then((upload) => {
+                res.status(200).json({
+                    severity: "success",
+                    message: 'File single upload',
+                    data: upload
+                });
+                return;
+            })
+            .catch((error) => this.handleError(error, res))
     }
 
     uploadMultiPleFiles = (req: Request, res: Response) => {
