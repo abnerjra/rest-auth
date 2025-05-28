@@ -30,16 +30,8 @@ export class FileUploadController {
             return;
         }
 
-        if (!req.files || Object.keys(req.files).length === 0) {
-            res.status(400).json({
-                severity: "error",
-                message: 'No files were selected',
-            });
-            return;
-        }
-
-
-        const file = req.files.file as UploadedFile;
+        // const file = req.body.files.at(0) as UploadedFile;
+        const file = req.body.files.at(0);
         const pathDestiny = `uploads/${type}`
 
         this.fileUploadService.uploadSingle(file, pathDestiny)
